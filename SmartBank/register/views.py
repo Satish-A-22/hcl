@@ -33,25 +33,44 @@ def register(request):
 
 def calculator(request):
     emi = None
+    error = None
+
     if request.method == "POST":
         try:
-            P = float(request.POST.get('principal'))
-            annual_rate = float(request.POST.get('rate'))
-            n = int(request.POST.get('time'))
+            # Get values from form
+            P = request.POST.get('principal')
+            annual_rate = request.POST.get('rate')
+            n = request.POST.get('time')
 
-            r = annual_rate / (12 * 100)  # Monthly rate in decimal
+            # Check if fields are empty
+            if not P or not annual_rate or not n:
+                raise ValueError("All fields are required!")
 
+            # Convert to numeric
+            P = float(P)
+            annual_rate = float(annual_rate)
+            n = int(n)
+
+            # Check for negative or zero values
+            if P <= 0 or annual_rate <= 0 or n <= 0:
+                raise ValueError("All values must be positive and greater than zero!")
+
+            # EMI calculation
+            r = annual_rate / (12 * 100)
             emi = P * r * (1 + r) ** n / ((1 + r) ** n - 1)
             emi = round(emi, 2)
 
         except OverflowError:
-            emi = "Value too large! Try smaller numbers."
+            error = "Value too large! Try smaller numbers."
         except ZeroDivisionError:
-            emi = "Check your inputs."
+            error = "Tenure cannot be zero."
+        except ValueError as ve:
+            error = str(ve)
         except Exception as e:
-            emi = f"Error: {e}"
+            error = f"Unexpected error: {e}"
 
-    return render(request, 'calculator.html', {'emi': emi})
+    return render(request, 'calculator.html', {'emi': emi, 'error': error})
+
 
 def admin_login(request):
     if request.method == "POST":

@@ -22,9 +22,11 @@
   <button type="submit" class="btn btn-primary">Calculate EMI</button>
 </form>
 
-{% if emi %}
-<div class="alert alert-success mt-3">
-  <strong>EMI:</strong> {{ emi }}
-</div>
+{% if error %}
+  <div class="alert alert-danger mt-3">{{ error }}</div>
 {% endif %}
+{% if emi %}
+  <div class="alert alert-success mt-3">Your EMI is: ₹{{ emi }}</div>
+{% endif %}
+
 {% endblock %}
