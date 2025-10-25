@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Loan Status{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 text-center">Check Your Loan Status</h2>
+
+<form method="POST" class="card p-4 shadow-sm" style="max-width: 400px; margin:auto;">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">Username</label>
+    <input type="text" name="username" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Password</label>
+    <input type="password" name="password" class="form-control" required>
+  </div>
+  <button type="submit" class="btn btn-primary w-100">Check Status</button>
+</form>
+
+{% if status %}
+  <div class="alert alert-info mt-4 text-center">
+    <strong>Your Loan Status:</strong> {{ status }}
+  </div>
+{% elif error %}
+  <div class="alert alert-danger mt-4 text-center">
+    {{ error }}
+  </div>
+{% endif %}
+{% endblock %}

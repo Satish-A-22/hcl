@@ -58,14 +58,14 @@ def admin_login(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
         
-        # Authenticate user
+        
         user = authenticate(request, username=username, password=password)
         
-        # Check if user exists and is superuser
+       
         if user is not None and user.is_superuser:
-            login(request, user)  # log the user in
+            login(request, user)
             request.session['admin_logged_in'] = True
-            return redirect('admin_dashboard')  # redirect to your admin dashboard
+            return redirect('admin_dashboard')  
         else:
             error = "Invalid admin credentials"
             return render(request, 'admin_login.html', {'error': error})
@@ -94,3 +94,21 @@ def admin_dashboard(request):
     applications = LoanApplication.objects.filter(status='Progress')  
     print("applications",applications)
     return render(request, 'admin_dashboard.html', {'applications': applications})
+
+
+def status_view(request):
+    status = None
+    error = None
+
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        # Check if user exists with same username and password
+        try:
+            application = LoanApplication.objects.get(username=username, password=password)
+            status = application.status
+        except LoanApplication.DoesNotExist:
+            error = "Invalid username or password"
+
+    return render(request, "status.html", {"status": status, "error": error})
