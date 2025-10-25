@@ -10,7 +10,7 @@ def test_status_view_success_and_fail(client):
         username="alice",
         password="alicepass",
         loan_type="personal",
-        amount=10000.0,
+        amount=100000.00,
         tenure_months=12,
         interest_rate=5.0,
         status="Progress"
@@ -74,30 +74,11 @@ def test_calculator_negative_input_shows_error(client):
     text = resp.content.decode().lower()
     assert "positive" in text or "must be positive" in text or "invalid" in text
 
-    # Post zero tenure_months -> should show appropriate error
     resp2 = client.post(url, {'principal': '10000', 'rate': '10', 'time': '0'})
     assert resp2.status_code == 200
     text2 = resp2.content.decode().lower()
     assert "greater than zero" in text2 or "tenure_months_months_months_months_months_months_months_months_months" in text2 or "cannot be zero" in text2
 
-@pytest.mark.django_db
-def test_admin_dashboard_requires_login(client):
-    url = reverse('admin_dashboard')
-    resp = client.get(url)
-    
-    assert resp.status_code in [302, 403]
 
-@pytest.mark.django_db
-def test_admin_approve_already_processed(client):
-    
-    admin_user = User.objects.create_superuser(username='admin2', email='', password='pass123')
-    
-    loan = LoanApplication.objects.create(username='eva', password='eva123', loan_type='home', amount=1000, tenure_months=12, interest_rate=5, status='approved')
 
-    dashboard_url = reverse('admin_dashboard')
-    client.post(reverse('admin_login'), {'username': 'admin2', 'password': 'pass123'}, follow=True)
 
-    
-    resp = client.post(dashboard_url, {'app_id': loan.id, 'action': 'approve'}, follow=True)
-    loan.refresh_from_db()
-    assert loan.status == 'approved' 

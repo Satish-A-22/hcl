@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from .models import LoanApplication
 from django.contrib.auth import authenticate, login,logout
-
+from django.contrib.auth.decorators import login_required, user_passes_test
 def register(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -83,7 +83,6 @@ def admin_login(request):
         # Check if user exists and is superuser
         if user is not None and user.is_superuser:
             login(request, user)  # log the admin in
-            request.session['admin_logged_in'] = True  # session flag
             return redirect('admin_dashboard')
         else:
             error = "Invalid admin credentials"
@@ -92,12 +91,11 @@ def admin_login(request):
     return render(request, 'admin_login.html')
 
 
+# Decorator ensures only superuser can access
+@login_required(login_url='admin_login')
+@user_passes_test(lambda u: u.is_superuser, login_url='admin_login')
 def admin_dashboard(request):
     """Admin dashboard view"""
-    # Protect dashboard access
-    if not request.session.get('admin_logged_in'):
-        return redirect('admin_login')
-
     # Handle approve/reject actions
     if request.method == "POST":
         app_id = request.POST.get("app_id")
@@ -116,7 +114,6 @@ def admin_dashboard(request):
     # Fetch only applications with status 'Progress'
     applications = LoanApplication.objects.filter(status='Progress')
     return render(request, 'admin_dashboard.html', {'applications': applications})
-
 
 def admin_logout(request):
     """Logout admin"""
