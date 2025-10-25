@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Calculator{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">EMI Calculator</h2>
+
+<form method="POST" action="{% url 'calculator' %}">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">Principal Amount (P)</label>
+    <input type="number" name="principal" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Annual Interest Rate (%)</label>
+    <input type="number" name="rate" step="0.01" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Tenure (Months) (n)</label>
+    <input type="number" name="time" class="form-control" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Calculate EMI</button>
+</form>
+
+{% if emi %}
+<div class="alert alert-success mt-3">
+  <strong>EMI:</strong> {{ emi }}
+</div>
+{% endif %}
+{% endblock %}
