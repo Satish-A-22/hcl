@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import LoanApplication
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login,logout
 
 def register(request):
     if request.method == 'POST':
@@ -71,48 +71,58 @@ def calculator(request):
 
     return render(request, 'calculator.html', {'emi': emi, 'error': error})
 
-
 def admin_login(request):
+    """Admin login view"""
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-        
-        
+
+        # Authenticate using Django auth system
         user = authenticate(request, username=username, password=password)
-        
-       
+
+        # Check if user exists and is superuser
         if user is not None and user.is_superuser:
-            login(request, user)
-            request.session['admin_logged_in'] = True
-            return redirect('admin_dashboard')  
+            login(request, user)  # log the admin in
+            request.session['admin_logged_in'] = True  # session flag
+            return redirect('admin_dashboard')
         else:
             error = "Invalid admin credentials"
             return render(request, 'admin_login.html', {'error': error})
-    
+
     return render(request, 'admin_login.html')
 
 
 def admin_dashboard(request):
-    # Check if admin is logged in
+    """Admin dashboard view"""
+    # Protect dashboard access
     if not request.session.get('admin_logged_in'):
         return redirect('admin_login')
 
-    # Fetch only applications with status 'progress'
-    applications = LoanApplication.objects.filter(status='Progress')
-
+    # Handle approve/reject actions
     if request.method == "POST":
         app_id = request.POST.get("app_id")
         action = request.POST.get("action")
-        app = LoanApplication.objects.get(id=app_id)
-        if action == "approve":
-            app.status = "approved"
-        elif action == "reject":
-            app.status = "rejected"
-        app.save()
+        try:
+            app = LoanApplication.objects.get(id=app_id)
+            if action == "approve":
+                app.status = "approved"
+            elif action == "reject":
+                app.status = "rejected"
+            app.save()
+        except LoanApplication.DoesNotExist:
+            # Optional: handle invalid app_id gracefully
+            pass
 
-    applications = LoanApplication.objects.filter(status='Progress')  
-    print("applications",applications)
+    # Fetch only applications with status 'Progress'
+    applications = LoanApplication.objects.filter(status='Progress')
     return render(request, 'admin_dashboard.html', {'applications': applications})
+
+
+def admin_logout(request):
+    """Logout admin"""
+    logout(request)  # Django logout
+    request.session.flush()  # clear session data
+    return redirect('admin_login')
 
 
 def status_view(request):

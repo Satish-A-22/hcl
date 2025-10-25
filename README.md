@@ -1,125 +1,195 @@
-Simple Step-by-Step Flow
-1. User signup / login
+SmartBank - Loan Management System
 
-*   User opens the app.
+SmartBank is a simple web-based loan management system where users can apply for loans, calculate EMI, and track application status. Admins can review, approve, or reject loan requests.
 
-*   Enter username & password.
+1. Features
+User Side
 
-*   If the same username+password already exists → log in (no new registration).
+Signup / Login
 
-*   If not, register the new user and save credentials (hash passwords).
+Users can register or log in using a username and password.
 
-2. Apply for a loan
+Existing users with the same credentials can log in directly.
 
-*    User (logged in) goes to Apply for Loan.
+Passwords are securely stored (hashed) in the database.
 
-*   Choose Loan Type: Home / Personal / Auto.
+Apply for a Loan
 
-*   Enter Loan Amount (P), Tenure (N) (months or years), and Interest Rate (annual R%).
+Logged-in users can apply for Home, Personal, or Auto loans.
 
-*   Submit the form → application saved with status Pending.
+Required inputs: Loan Amount (P), Tenure (N months/years), Interest Rate (R%).
 
-3. EMI calculation (automatic)
+Application is saved with status = Pending.
 
-*    Convert annual rate to monthly: r = R / (12 * 100)
+EMI Calculation
 
-*    Convert tenure to months if needed: n = N_months
+EMI is automatically calculated using the formula:
 
-*   EMI formula:
-
-        EMI = (P * r * (1 + r)**n) / ((1 + r)**n - 1)
-
+r = R / (12 * 100)  # Monthly interest rate
+EMI = (P * r * (1 + r)**n) / ((1 + r)**n - 1)
 
 
-4. Admin review
+EMI is displayed to the user immediately after submitting the form.
 
-*    Admin logs into Admin Dashboard.
+Check Loan Status
 
-*   See list of applications with status Pending.
+Users can see each loan application with:
 
-*   For each application, admin can click:
+Application ID
 
-*   Approve → status = Approved
+Loan Type
 
-*   Reject → status = Rejected
+Amount
 
-5. User sees status
+Tenure
 
-*   User opens their dashboard.
-
-*   They see each application with:
-
-*   Application ID
-
+Interest Rate
 
 Status: Pending / Approved / Rejected
 
-        ┌────────────────────┐
-        │  Customer Signup   │
-        └───────┬────────────┘
-                │
-                ▼
-        ┌────────────────────┐
-        │   User Login       │
-        └───────┬────────────┘
-                │
-                ▼
-        ┌──────────────────────────────┐
-        │  Loan Application Form       │
-        │  (Select type, amount, etc.) │
-        └───────┬──────────────────────┘
-                │
-                ▼
-        ┌──────────────────────────────┐
-        │   EMI Calculation (Python)   │
-        └───────┬──────────────────────┘
-                │
-                ▼
-        ┌────────────────────┐
-        │  Admin Dashboard   │
-        │  (Review Request)  │
-        └───────┬────────────┘
-                │
-      ┌─────────┼─────────┐
-      ▼                     ▼
-┌─────────────┐      ┌─────────────┐
-│  Approve    │      │  Reject     │
-└───────┬─────┘      └───────┬─────┘
-        │                     │
-        ▼                     ▼
+Admin Side
+
+Admin Login
+
+Admins log in via /admin-login/.
+
+Only superusers can access the Admin Dashboard.
+
+Admin Dashboard
+
+URL: /admin-dashboard/
+
+Only accessible if the admin is logged in; otherwise, redirected to login.
+
+Shows all Pending loan applications.
+
+Admin can:
+
+Approve → updates status to Approved
+
+Reject → updates status to Rejected
+
+Access Control
+
+Dashboard is protected by a session check.
+
+Direct access via URL without login is blocked.
+
+2. API Endpoints
+Endpoint	Method	Description	Parameters
+/login	POST	User login	username, password
+/register	POST	Apply for a loan	loan_type, amount, tenure, rate
+/calculator	POST	Calculate EMI	amount, rate, time
+/status	POST	Check loan status	username, password
+/admin-login	POST	Admin login	username, password
+/admin-dashboard	GET/POST	Admin dashboard	Approve/Reject application via app_id and action
+
+3. Step-by-Step Flow
+┌────────────────────┐
+│  Customer Signup   │
+└───────┬────────────┘
+        │
+        ▼
+┌────────────────────┐
+│   User Login       │
+└───────┬────────────┘
+        │
+        ▼
+┌──────────────────────────────┐
+│  Loan Application Form       │
+│  (Select type, amount, etc.) │
+└───────┬──────────────────────┘
+        │
+        ▼
+┌──────────────────────────────┐
+│   EMI Calculation (Python)   │
+└───────┬──────────────────────┘
+        │
+        ▼
+┌────────────────────┐
+│  Admin Dashboard   │
+│  (Review Request)  │
+└───────┬────────────┘
+        │
+  ┌─────┴─────┐
+  ▼           ▼
+┌───────┐   ┌───────┐
+│Approve│   │Reject │
+└───────┘   └───────┘
+        │           │
+        ▼           ▼
 ┌──────────────────────────────┐
 │   Loan Status Updated        │
 │ (Visible to the Customer)    │
 └──────────────────────────────┘
 
-User Side:
+4. Installation / Setup
 
-    User logs in with username and password.
+Clone the repository:
 
-    Enters loan details (price, rate, month).
+git clone <repo-url>
+cd SmartBank
 
-    Application is saved with status = pending.
 
-    User can check status anytime on the website.
+Create a virtual environment:
 
-Admin Side:
+python -m venv env
+source env/bin/activate   # Linux / macOS
+env\Scripts\activate      # Windows
 
-    Admin dashboard shows all pending applications.
 
-    Admin can approve or reject applications.
+Install dependencies:
 
-    Database is updated based on admin action.
+pip install -r requirements.txt
 
-API Endpoints
 
-/login → User login
-username and password
+Apply migrations:
 
-/register->fill the application for loan
-type , amount, tenure
+python manage.py migrate
 
-/calculator → Calculate EMI
-amount rate month = value 
-/status → Check loan status
 
-/admin ->to show dashboard
+Create a superuser (for admin):
+
+python manage.py createsuperuser
+
+
+Run the server:
+
+python manage.py runserver
+
+5. Additional / Future Features
+
+Loan Filtering / Sorting: Filter by loan type, status, or user.
+
+Email Notifications: Send emails to users when a loan is approved/rejected.
+
+Multiple Admin Roles: Admins with different permissions.
+
+Dashboard Analytics: Total applications, approval rate, pending loans, etc.
+
+PDF Generation: Generate EMI schedules for users.
+
+REST API: Full API support for external mobile apps.
+
+Two-Factor Authentication (2FA): Secure admin login.
+
+Loan History: Users can see previous applications.
+
+Interest Rate Calculator: Compare loans with different rates dynamically.
+
+Dark Mode / UI Improvements: Enhance user experience.
+
+6. Testing
+
+Unit Tests: Test calculator logic, input validation, and model constraints.
+
+Integration Tests: Test API endpoints /login, /register, /calculator, /status, /admin-dashboard.
+
+Admin Flow Tests: Ensure only logged-in admins can approve/reject loans.
+
+Run tests using:
+
+pytest -v
+
+
+This README explains the project, workflow, API, and future enhancements clearly.
